@@ -55,7 +55,7 @@ if game_start != "No":
         title = "Question 2"
         q2choices = ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team","By starting and ending the meetings at the proper time","By keeping high value features high in the Product Backlog"]
         q2 = multchoicebox(msg,title,q2choices)
-        if q2 == ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team"]:
+        if q2 == ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team"]: #mettre par ordre alphabétique
 
             score = score + 1
             correct = ("Well done you got it right. Your score is "+str(score))
@@ -93,9 +93,9 @@ if game_start != "No":
     for i in range(0,1):
         msg = "How much work must a Development Team do to a Product Backlog item it selects for a Sprint?"
         title = "Question 4"
-        q3choices = ["As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done.","As much as it can fit into the Sprint.","All development work and at least some testing.","Analysis, design, programming, testing and documentation."]
-        q3 = choicebox(msg,title,q3choices)
-        if q3 == "As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done.":
+        q4choices = ["As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done.","As much as it can fit into the Sprint.","All development work and at least some testing.","Analysis, design, programming, testing and documentation."]
+        q4 = choicebox(msg,title,q4choices)
+        if q4 == "As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done.":
 
             score = score + 1
             correct = ("Well done you got it right. Your score is "+str(score))
