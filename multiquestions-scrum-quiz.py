@@ -56,7 +56,7 @@ if game_start != "No":
         title = "Question 2"
         q2choices = ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team","By starting and ending the meetings at the proper time","By keeping high value features high in the Product Backlog"]
         q2 = multchoicebox(msg,title,q2choices)
-        if q2 == ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team"]: #mettre par ordre alphabétique
+        if q2 == ["By facilitating Development Team decisions","By removing impediments that hinder the Development Team"]: #use the same order as the question line
 
             score = score + 1
             correct = ("Well done you got it right. Your score is "+str(score))
