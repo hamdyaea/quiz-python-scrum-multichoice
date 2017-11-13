@@ -2,6 +2,7 @@
 # Developer : Hamdy Abou El Anein
 
 from easygui import *
+#please use at least version 0.98  with #sudo python3 -m pip install --upgrade easygui
 
 #import time
 
