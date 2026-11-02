@@ -1,150 +1,139 @@
 #!/usr/bin/env python3
-# Developer : Hamdy Abou El Anein
-# hamdy.aea@protonmail.com
+# Developer: Hamdy Abou El Anein
+# Contact: info@daylightlinux.ch
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Four-question historical Scrum quiz, modernized with Tkinter."""
+from __future__ import annotations
 
-from easygui import *
+import tkinter as tk
 
-# please use at least version 0.98  with #sudo python3 -m pip install --upgrade easygui
-
-# import time
-
-import pygame
-
-pygame.init()
-
-# pygame.mixer.init()
-
-
-score = 0
-
-logo = "./images/logo.gif"
-
-play = ["Yes", "No"]
-
-start_title = "Welcome to The Scrum Master Quiz"
-start_msg = "Would you like to play the Scrum Master Quiz?"
-game_start = buttonbox(title=start_title, image=logo, msg=start_msg, choices=play)
-
-
-print(game_start)
-
-if game_start != "No":
-
-    msgbox(
-        title="Let the Scrum Master Quizz begin",
-        image=logo,
-        msg="Your score is " + str(score),
-    )
-
-    # Question 1
-    for i in range(0, 1):
-        msg = "An organization has decided to adopt Scrum, but management wants to change the terminology to fit with terminology already used. What will likely happen if this is done?"
-        title = "Question 1"
-        q1choices = [
-            "Without a new vocabulary as a reminder of the change, very little change may actually happen.",
-            "The organization may not understand what has changed with Scrum and the benefits of Scrum may be lost.",
+# These questions retain the original historical Scrum terminology.
+# Some role names have changed in newer versions of the Scrum Guide.
+QUESTIONS = [
+    (
+        "An organization adopts Scrum but changes its terminology. What could happen?",
+        [
+            "Without new vocabulary, little change may happen.",
+            "The organization may lose sight of Scrum's benefits.",
             "Management may feel less anxious.",
             "All answers apply.",
-        ]
-        q1 = choicebox(msg, title, q1choices)
-        if q1 == "All answers apply.":
+        ],
+        {3},
+    ),
+    (
+        "How does a Scrum Master help a Development Team be productive? (Select two)",
+        [
+            "Facilitating team decisions",
+            "Removing impediments",
+            "Starting and ending meetings at the correct time",
+            "Prioritizing the Product Backlog",
+        ],
+        {0, 1},
+    ),
+    (
+        "Which statement best describes a Product Owner's responsibility?",
+        [
+            "Optimizing the value of the team's work",
+            "Directing the Development Team",
+            "Managing the project and stakeholder commitments",
+            "Keeping stakeholders at bay",
+        ],
+        {0},
+    ),
+    (
+        "How much work must be done on a selected Product Backlog item?",
+        [
+            "Enough to satisfy the Definition of Done",
+            "As much as fits into the Sprint",
+            "All development and some testing",
+            "Analysis, design, coding, testing and documentation",
+        ],
+        {0},
+    ),
+]
 
-            score = score + 1
-            correct = "Well done you got it right. Your score is " + str(score)
-            image = "./images/tick.gif"
-            msgbox(title="CORRECT", image=image, msg=correct)
-            break
+
+def score_answer(index: int, selected: set[int]) -> bool:
+    if not 0 <= index < len(QUESTIONS):
+        raise ValueError("Invalid question")
+    if not selected or any(not 0 <= choice < len(QUESTIONS[index][1]) for choice in selected):
+        raise ValueError("Invalid answer")
+    return selected == QUESTIONS[index][2]
+
+
+class ScrumQuiz(tk.Tk):
+    def __init__(self) -> None:
+        super().__init__()
+        self.title("Scrum Quiz — Hamdy Abou El Anein")
+        self.geometry("760x540")
+        self.minsize(540, 440)
+        self.configure(bg="#101827")
+        self.index = 0
+        self.correct = 0
+        self.vars: list[tk.IntVar] = []
+        self.message = tk.StringVar()
+        self.title_label = tk.StringVar()
+        box = tk.Frame(self, bg="#101827", padx=28, pady=24)
+        box.pack(fill="both", expand=True)
+        tk.Label(box, text="SCRUM KNOWLEDGE QUIZ", bg="#101827", fg="#8bd6c1",
+                 font=("DejaVu Sans", 16, "bold")).pack(anchor="w")
+        tk.Label(box, textvariable=self.title_label, bg="#101827", fg="white",
+                 font=("DejaVu Sans", 13, "bold"), wraplength=670,
+                 justify="left").pack(anchor="w", pady=(22, 16))
+        self.choices = tk.Frame(box, bg="#101827")
+        self.choices.pack(fill="both", expand=True)
+        tk.Label(box, textvariable=self.message, bg="#101827", fg="#f2c879",
+                 wraplength=660).pack(anchor="w", pady=14)
+        self.next_button = tk.Button(box, text="Submit answer", command=self.submit,
+                                     bg="#7ddcc0", fg="#10211c", relief="flat",
+                                     padx=20, pady=10)
+        self.next_button.pack(anchor="w")
+        self.show_question()
+
+    def show_question(self) -> None:
+        for child in self.choices.winfo_children():
+            child.destroy()
+        question, options, correct = QUESTIONS[self.index]
+        self.title_label.set(f"Question {self.index + 1}/{len(QUESTIONS)} — {question}")
+        self.message.set("Select your answer and submit.")
+        self.vars = [tk.IntVar(value=0) for _ in options]
+        self.radio = tk.IntVar(value=-1)
+        for i, option in enumerate(options):
+            if len(correct) == 1:
+                widget = tk.Radiobutton(self.choices, text=option, variable=self.radio,
+                                        value=i, bg="#101827", fg="#f1f6fc",
+                                        selectcolor="#314963", activebackground="#101827",
+                                        wraplength=630, justify="left", anchor="w")
+            else:
+                widget = tk.Checkbutton(self.choices, text=option, variable=self.vars[i],
+                                        bg="#101827", fg="#f1f6fc",
+                                        selectcolor="#314963", activebackground="#101827",
+                                        wraplength=630, justify="left", anchor="w")
+            widget.pack(anchor="w", fill="x", pady=7)
+
+    def submit(self) -> None:
+        if self.index >= len(QUESTIONS):
+            self.index = self.correct = 0
+            self.next_button.config(text="Submit answer")
+            self.show_question()
+            return
+        expected = QUESTIONS[self.index][2]
+        selected = ({self.radio.get()} if len(expected) == 1 and self.radio.get() >= 0
+                    else {i for i, value in enumerate(self.vars) if value.get()})
+        if not selected:
+            self.message.set("Select at least one answer.")
+            return
+        self.correct += score_answer(self.index, selected)
+        self.index += 1
+        if self.index == len(QUESTIONS):
+            self.title_label.set(f"Quiz complete — {self.correct}/{len(QUESTIONS)} correct")
+            for child in self.choices.winfo_children():
+                child.destroy()
+            self.message.set("Historical quiz completed. Review the current Scrum Guide for updated terminology.")
+            self.next_button.config(text="Play again")
         else:
+            self.show_question()
 
-            wrong = "I'm sorry that's the wrong answer"
-            image = "./images/cross.gif"
-            msgbox(title="Wrong Answer", image=image, msg=wrong)
 
-    # Question 2 (multichoice)
-    for i in range(0, 1):
-        msg = "What are the two primary ways a Scrum Master keeps a Development Team working at its highest level of productivity? (2 answers)"
-        title = "Question 2"
-        q2choices = [
-            "By facilitating Development Team decisions",
-            "By removing impediments that hinder the Development Team",
-            "By starting and ending the meetings at the proper time",
-            "By keeping high value features high in the Product Backlog",
-        ]
-        q2 = multchoicebox(msg, title, q2choices)
-        if q2 == [
-            "By facilitating Development Team decisions",
-            "By removing impediments that hinder the Development Team",
-        ]:  # use the same order as the question line
-
-            score = score + 1
-            correct = "Well done you got it right. Your score is " + str(score)
-            image = "./images/tick.gif"
-            msgbox(title="CORRECT", image=image, msg=correct)
-            break
-        else:
-
-            wrong = "I'm sorry that's the wrong answer"
-            image = "./images/cross.gif"
-            msgbox(title="Wrong Answer", image=image, msg=wrong)
-
-    # Question 3
-    for i in range(0, 1):
-        msg = "Which statement best describes a Product Owner's responsibility?"
-        title = "Question 3"
-        q3choices = [
-            "Optimizing the value of the work the Development Team does.",
-            "Directing the Development Team.",
-            "Managing the project and ensuring that the work meets the commitments to the stakeholders.",
-            "Keeping stakeholders at bay.",
-        ]
-        q3 = choicebox(msg, title, q3choices)
-        if q3 == "Optimizing the value of the work the Development Team does.":
-
-            score = score + 1
-            correct = "Well done you got it right. Your score is " + str(score)
-            image = "./images/tick.gif"
-            msgbox(title="CORRECT", image=image, msg=correct)
-            break
-        else:
-
-            wrong = "I'm sorry that's the wrong answer"
-            image = "./images/cross.gif"
-            msgbox(title="Wrong Answer", image=image, msg=wrong)
-
-    # Question 4
-    for i in range(0, 1):
-        msg = "How much work must a Development Team do to a Product Backlog item it selects for a Sprint?"
-        title = "Question 4"
-        q4choices = [
-            "As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done.",
-            "As much as it can fit into the Sprint.",
-            "All development work and at least some testing.",
-            "Analysis, design, programming, testing and documentation.",
-        ]
-        q4 = choicebox(msg, title, q4choices)
-        if (
-            q4
-            == "As much as it has told the Product Owner will be done for every Product Backlog item it selects in conformance with the definition of done."
-        ):
-
-            score = score + 1
-            correct = "Well done you got it right. Your score is " + str(score)
-            image = "./images/tick.gif"
-            msgbox(title="CORRECT", image=image, msg=correct)
-            break
-        else:
-
-            wrong = "I'm sorry that's the wrong answer"
-            image = "./images/cross.gif"
-            msgbox(title="Wrong Answer", image=image, msg=wrong)
-
-gameover_good = "./images/logo.gif"
-gameover_bad = "./images/logo.gif"
-
-game_over_title = "Scrum Master Quiz"
-msg_bad = "You have not passed the exam, your score is (under 85%) : " + str(score)
-msg_good = "You have passed the exam, your score is : " + str(score)
-if score < 3:
-    game_over = msgbox(title=game_over_title, image=gameover_bad, msg=msg_bad)
-else:
-    game_over = msgbox(title=game_over_title, image=gameover_good, msg=msg_good)
+if __name__ == "__main__":
+    ScrumQuiz().mainloop()
