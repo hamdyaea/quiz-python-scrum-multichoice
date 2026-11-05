@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Four-question historical Scrum quiz, modernized with Tkinter."""
 from __future__ import annotations
+from pathlib import Path
 
 import tkinter as tk
 
@@ -65,7 +66,8 @@ class ScrumQuiz(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Scrum Quiz — Hamdy Abou El Anein")
-        self.geometry("760x540")
+        folder = Path(__file__).resolve().parent / "images"
+        self.art = {key: tk.PhotoImage(file=str(folder / (key + "-ui.png"))) for key in ("logo", "tick", "cross")}
         self.minsize(540, 440)
         self.configure(bg="#101827")
         self.index = 0
@@ -80,6 +82,8 @@ class ScrumQuiz(tk.Tk):
         tk.Label(box, textvariable=self.title_label, bg="#101827", fg="white",
                  font=("DejaVu Sans", 13, "bold"), wraplength=670,
                  justify="left").pack(anchor="w", pady=(22, 16))
+        self.picture = tk.Label(box, image=self.art["logo"])
+        self.picture.pack(anchor="w")
         self.choices = tk.Frame(box, bg="#101827")
         self.choices.pack(fill="both", expand=True)
         tk.Label(box, textvariable=self.message, bg="#101827", fg="#f2c879",
@@ -113,6 +117,7 @@ class ScrumQuiz(tk.Tk):
 
     def submit(self) -> None:
         if self.index >= len(QUESTIONS):
+            self.picture.configure(image=self.art["logo"])
             self.index = self.correct = 0
             self.next_button.config(text="Submit answer")
             self.show_question()
@@ -123,6 +128,7 @@ class ScrumQuiz(tk.Tk):
         if not selected:
             self.message.set("Select at least one answer.")
             return
+        self.picture.configure(image=self.art["tick" if selected == expected else "cross"])
         self.correct += score_answer(self.index, selected)
         self.index += 1
         if self.index == len(QUESTIONS):
